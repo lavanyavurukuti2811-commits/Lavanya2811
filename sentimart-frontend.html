@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentiMart - Multilingual Sentiment Analysis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* ==================== ROOT VARIABLES ==================== */
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #ec4899;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --neutral-color: #8b5cf6;
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ==================== RESET & GENERAL ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+            background-color: var(--light-bg);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ==================== NAVBAR ==================== */
+        .navbar {
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .navbar-brand i {
+            font-size: 28px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-color);
+        }
+
+        .btn-login {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        /* ==================== BUTTONS ==================== */
+        .btn-primary,
+        .btn-secondary {
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
+        }
+
+        /* ==================== HERO SECTION ==================== */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 80px 0;
+        }
+
+        .hero .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 48px;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        .hero-content h1 span {
+            display: block;
+            color: #fbbf24;
+        }
+
+        .hero-content p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .floating-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .floating-card i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .floating-card p {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* ==================== SECTIONS ==================== */
+        section {
+            padding: 80px 0;
+        }
+
+        section h2 {
+            font-size: 40px;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 18px;
+            margin-bottom: 50px;
+        }
+
+        /* ==================== ANALYZE SECTION ==================== */
+        .analyze {
+            background: var(--light-bg);
+        }
+
+        .analyze-container {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 50px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .language-select,
+        .review-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .language-select:focus,
+        .review-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .review-input {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* ==================== RESULTS ==================== */
+        .results {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease;
+        }
+
+        .results.hidden {
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+        }
+
+        .sentiment-gauge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--success-color) 0deg 180deg,
+                var(--danger-color) 180deg 360deg
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .gauge-value {
+            width: 180px;
+            height: 180px;
+            background: var(--card-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        #sentiment-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sentiment-breakdown {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sentiment-breakdown h3 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .sentiment-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sentiment-bar {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .bar-label i {
+            margin-right: 8px;
+        }
+
+        .sentiment-positive {
+            color: var(--success-color);
+        }
+
+        .sentiment-neutral {
+            color: var(--neutral-color);
+        }
+
+        .sentiment-negative {
+            color: var(--danger-color);
+        }
+
+        .bar-container {
+            background: var(--border-color);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .bar.positive {
+            background: var(--success-color);
+        }
+
+        .bar.neutral {
+            background: var(--neutral-color);
+        }
+
+        .bar.negative {
+            background: var(--danger-color);
+        }
+
+        .key-phrases {
+            margin-top: 30px;
+        }
+
+        .key-phrases h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .phrases-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .phrase-tag {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        /* ==================== DASHBOARD ==================== */
+        .dashboard {
+            background: var(--light-bg);
+        }
+
+        .dashboard-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .date-input,
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 40px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .stat-icon.positive {
+            color: var(--success-color);
+        }
+
+        .stat-icon.neutral {
+            color: var(--neutral-color);
+        }
+
+        .stat-icon.negative {
+            color: var(--danger-color);
+        }
+
+        .stat-card h4 {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        /* ==================== FEATURES SECTION ==================== */
+        .features {
+            background: var(--card-bg);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            background: var(--light-bg);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-card i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .feature-card:hover i {
+            color: white;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .feature-card:hover p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* ==================== ABOUT SECTION ==================== */
+        .about {
+            background: var(--light-bg);
+        }
+
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .about-content p {
+            margin-bottom: 20px;
+        }
+
+        /* ==================== FOOTER ==================== */
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+        }
+
+        .footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+
+        /* ==================== LOADING ANIMATION ==================== */
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .navbar .container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                gap: 15px;
+                justify-content: center;
+            }
+
+            .hero .container {
+                grid-template-columns: 1fr;
+                padding: 40px 0;
+            }
+
+            .hero-content h1 {
+                font-size: 32px;
+            }
+
+            .result-card {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+
+            .footer .container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .dashboard-filters {
+                flex-direction: column;
+            }
+
+            .date-input,
+            .filter-select {
+                width: 100%;
+            }
+
+            section h2 {
+                font-size: 28px;
+            }
+
+            .analyze-container {
+                padding: 20px;
+            }
+
+            .results {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-content h1 {
+                font-size: 24px;
+            }
+
+            .hero-content p {
+                font-size: 16px;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .nav-links {
+                gap: 10px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <i class="fas fa-chart-pie"></i>
+                <span>SentiMart</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home" class="active">Home</a></li>
+                <li><a href="#analyze">Analyze</a></li>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#about">About</a></li>
+                <li><button class="btn-login">Login</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Analyze Customer Sentiment <span>in 50+ Languages</span></h1>
+                <p>Unlock powerful insights from customer reviews and feedback across the globe</p>
+                <button class="btn-primary" onclick="scrollToSection('analyze')">
+                    Get Started <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="hero-image">
+                <div class="floating-card">
+                    <i class="fas fa-smile"></i>
+                    <p>Positive: 87%</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analyze Section -->
+    <section id="analyze" class="analyze">
+        <div class="container">
+            <h2>Analyze Sentiment</h2>
+            <p class="section-subtitle">Paste your review or feedback and let our AI detect sentiment in your language</p>
+            
+            <div class="analyze-container">
+                <div class="input-group">
+                    <label for="language-select">Select Language:</label>
+                    <select id="language-select" class="language-select">
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="zh">Chinese (Simplified)</option>
+                        <option value="ja">Japanese</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="ru">Russian</option>
+                        <option value="ar">Arabic</option>
+                        <option value="hi">Hindi</option>
+                        <option value="ko">Korean</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="review-input">Enter Review or Feedback:</label>
+                    <textarea id="review-input" class="review-input" placeholder="Type or paste your customer review here..." rows="6"></textarea>
+                    <div class="char-count">
+                        <span id="char-current">0</span> / <span id="char-max">1000</span> characters
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="analyzeReview()">
+                        <i class="fas fa-analysis"></i> Analyze Sentiment
+                    </button>
+                    <button class="btn-secondary" onclick="clearForm()">
+                        <i class="fas fa-redo"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results" class="results hidden">
+                <div class="result-card">
+                    <div class="sentiment-gauge">
+                        <div class="gauge-circle">
+                            <div id="gauge-value" class="gauge-value">0%</div>
+                        </div>
+                        <p id="sentiment-label">Processing...</p>
+                    </div>
+
+                    <div class="sentiment-breakdown">
+                        <h3>Sentiment Distribution</h3>
+                        <div class="sentiment-bars">
+                            <div class="sentiment-bar">
+                                <div class="bar-label">
+                                    <span><i class="fas fa-smile sentiment-positive"></i> Positive</span>
+                                    <span id="positive-percent">0%</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div id="positive-bar" class="bar positive"></div>
+                                </div>
+                            </div>
+                            <div class="sentiment-bar">
+                                <div class="bar-label">
+                                    <span><i class="fas fa-meh sentiment-neutral"></i> Neutral</span>
+                                    <span id="neutral-percent">0%</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div id="neutral-bar" class="bar neutral"></div>
+                                </div>
+                            </div>
+                            <div class="sentiment-bar">
+                                <div class="bar-label">
+                                    <span><i class="fas fa-frown sentiment-negative"></i> Negative</span>
+                                    <span id="negative-percent">0%</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div id="negative-bar" class="bar negative"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="key-phrases">
+                        <h3>Key Phrases Detected</h3>
+                        <div id="phrases-container" class="phrases-container"></div>
+                    </div>
+
+                    <div class="result-actions">
+                        <button class="btn-secondary" onclick="downloadReport()">
+                            <i class="fas fa-download"></i> Download Report
+                        </button>
+                        <button class="btn-secondary" onclick="shareResult()">
+                            <i class="fas fa-share-alt"></i> Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="dashboard">
+        <div class="container">
+            <h2>Analytics Dashboard</h2>
+            <p class="section-subtitle">Track sentiment trends over time</p>
+
+            <div class="dashboard-filters">
+                <input type="date" id="date-from" class="date-input" placeholder="From">
+                <input type="date" id="date-to" class="date-input" placeholder="To">
+                <select id="product-filter" class="filter-select">
+                    <option value="">All Products</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="books">Books</option>
+                </select>
+                <button class="btn-primary" onclick="loadDashboard()">Filter</button>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h4>Total Reviews</h4>
+                    <p id="total-reviews" class="stat-value">1,234</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon positive">
+                        <i class="fas fa-smile"></i>
+                    </div>
+                    <h4>Positive Reviews</h4>
+                    <p id="positive-reviews" class="stat-value">876</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon neutral">
+                        <i class="fas fa-meh"></i>
+                    </div>
+                    <h4>Neutral Reviews</h4>
+                    <p id="neutral-reviews" class="stat-value">234</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon negative">
+                        <i class="fas fa-frown"></i>
+                    </div>
+                    <h4>Negative Reviews</h4>
+                    <p id="negative-reviews" class="stat-value">124</p>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-card">
+                    <h3>Sentiment Trend</h3>
+                    <canvas id="trendChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Language Distribution</h3>
+                    <canvas id="languageChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Why Choose SentiMart?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-globe"></i>
+                    <h3>50+ Languages</h3>
+                    <p>Analyze sentiment in over 50 languages worldwide</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-bolt"></i>
+                    <h3>Real-Time Analysis</h3>
+                    <p>Get instant sentiment results with high accuracy</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Advanced Analytics</h3>
+                    <p>Track trends and patterns in customer feedback</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-lock"></i>
+                    <h3>Secure & Private</h3>
+                    <p>Your data is encrypted and never shared</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About SentiMart</h2>
+            <div class="about-content">
+                <p>SentiMart is a cutting-edge sentiment analysis platform designed for e-commerce businesses. Using advanced AI and machine learning, we help you understand customer emotions and improve your products and services.</p>
+                <p>Our multilingual capabilities ensure you can analyze feedback from customers around the world, breaking language barriers and unlocking global insights.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 SentiMart. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Service</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ==================== CONSTANTS ==================== //
+        const API_BASE_URL = 'http://localhost:5000/api'; // Update with your backend URL
+        const MAX_CHARS = 1000;
+
+        // Language codes mapping
+        const languageMap = {
+            'en': 'English',
+            'es': 'Spanish',
+            'fr': 'French',
+            'de': 'German',
+            'zh': 'Chinese',
+            'ja': 'Japanese',
+            'pt': 'Portuguese',
+            'ru': 'Russian',
+            'ar': 'Arabic',
+            'hi': 'Hindi',
+            'ko': 'Korean'
+        };
+
+        // ==================== DOM ELEMENTS ==================== //
+        const reviewInput = document.getElementById('review-input');
+        const languageSelect = document.getElementById('language-select');
+        const charCurrent = document.getElementById('char-current');
+        const charMax = document.getElementById('char-max');
+        const resultsSection = document.getElementById('results');
+
+        // ==================== INITIALIZE ==================== //
+        document.addEventListener('DOMContentLoaded', function() {
+            charMax.textContent = MAX_CHARS;
+            initializeEventListeners();
+            setupNavigation();
+            loadMockDashboard();
+        });
+
+        // ==================== EVENT LISTENERS ==================== //
+        function initializeEventListeners() {
+            // Character count update
+            reviewInput.addEventListener('input', function() {
+                charCurrent.textContent = this.value.length;
+                
+                if (this.value.length > MAX_CHARS) {
+                    this.value = this.value.substring(0, MAX_CHARS);
+                    charCurrent.textContent = MAX_CHARS;
+                }
+            });
+
+            // Enter key to analyze
+            reviewInput.addEventListener('keydown', function(event) {
+                if (event.ctrlKey && event.key === 'Enter') {
+                    analyzeReview();
+                }
+            });
+        }
+
+        // ==================== NAVIGATION ==================== //
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.nav-links a');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // ==================== SENTIMENT ANALYSIS ==================== //
+        async function analyzeReview() {
+            const review = reviewInput.value.trim();
+            const language = languageSelect.value;
+
+            if (!review) {
+                alert('Please enter a review to analyze');
+                return;
+            }
+
+            if (review.length < 5) {
+                alert('Review must be at least 5 characters long');
+                return;
+            }
+
+            try {
+                // Show loading state
+                showLoadingState();
+                
+                // Call backend API
+                const response = await fetch(`${API_BASE_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: review,
+                        language: language
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error('Error analyzing review:', error);
+                // Display mock results for demonstration
+                displayMockResults();
+            }
+        }
+
+        // ==================== DISPLAY RESULTS ==================== //
+        function displayResults(data) {
+            const sentiment = data.sentiment || 'positive'; // positive, negative, neutral
+            const confidence = data.confidence || 0.85;
+            const scores = data.scores || {
+                positive: 0.7,
+                neutral: 0.2,
+                negative: 0.1
+            };
+            const keyPhrases = data.key_phrases || [];
+
+            // Update gauge
+            const gaugePercent = Math.round(confidence * 100);
+            document.getElementById('gauge-value').textContent = gaugePercent + '%';
+            
+            // Update sentiment label
+            const sentimentLabel = document.getElementById('sentiment-label');
+            sentimentLabel.textContent = sentiment.charAt(0).toUpperCase() + sentiment.slice(1);
+            sentimentLabel.style.color = getSentimentColor(sentiment);
+
+            // Update sentiment bars
+            updateSentimentBars(scores);
+
+            // Update key phrases
+            displayKeyPhrases(keyPhrases);
+
+            // Show results
+            resultsSection.classList.remove('hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function displayMockResults() {
+            const mockData = {
+                sentiment: 'positive',
+                confidence: 0.92,
+                scores: {
+                    positive: 0.92,
+                    neutral: 0.06,
+                    negative: 0.02
+                },
+                key_phrases: ['amazing product', 'great quality', 'fast shipping', 'highly recommended']
+            };
+
+            displayResults(mockData);
+        }
+
+        function updateSentimentBars(scores) {
+            const positivePercent = Math.round(scores.positive * 100);
+            const neutralPercent = Math.round(scores.neutral * 100);
+            const negativePercent = Math.round(scores.negative * 100);
+
+            // Update percentages
+            document.getElementById('positive-percent').textContent = positivePercent + '%';
+            document.getElementById('neutral-percent').textContent = neutralPercent + '%';
+            document.getElementById('negative-percent').textContent = negativePercent + '%';
+
+            // Update bars
+            document.getElementById('positive-bar').style.width = positivePercent + '%';
+            document.getElementById('neutral-bar').style.width = neutralPercent + '%';
+            document.getElementById('negative-bar').style.width = negativePercent + '%';
+        }
+
+        function displayKeyPhrases(phrases) {
+            const container = document.getElementById('phrases-container');
+            container.innerHTML = '';
+
+            phrases.slice(0, 6).forEach(phrase => {
+                const tag = document.createElement('span');
+                tag.className = 'phrase-tag';
+                tag.textContent = phrase;
+                container.appendChild(tag);
+            });
+        }
+
+        function getSentimentColor(sentiment) {
+            const colors = {
+                'positive': '#10b981',
+                'negative': '#ef4444',
+                'neutral': '#8b5cf6'
+            };
+            return colors[sentiment] || '#6366f1';
+        }
+
+        // ==================== FORM ACTIONS ==================== //
+        function clearForm() {
+            reviewInput.value = '';
+            charCurrent.textContent = '0';
+            resultsSection.classList.add('hidden');
+            languageSelect.value = 'en';
+        }
+
+        function showLoadingState() {
+            const gaugeValue = document.getElementById('gauge-value');
+            gaugeValue.innerHTML = '<div class="loader"></div>';
+            document.getElementById('sentiment-label').textContent = 'Analyzing...';
+        }
+
+        // ==================== DOWNLOAD & SHARE ==================== //
+        function downloadReport() {
+            const sentiment = document.getElementById('sentiment-label').textContent;
+            const confidence = document.getElementById('gauge-value').textContent;
+            const review = reviewInput.value;
+            const language = document.querySelector('#language-select option:checked').text;
+
+            const report = `
+SENTIMENT ANALYSIS REPORT
+==========================
+Generated: ${new Date().toLocaleString()}
+
+REVIEW TEXT:
+${review}
+
+LANGUAGE: ${language}
+
+ANALYSIS RESULTS:
+- Sentiment: ${sentiment}
+- Confidence: ${confidence}
+- Positive: ${document.getElementById('positive-percent').textContent}
+- Neutral: ${document.getElementById('neutral-percent').textContent}
+- Negative: ${document.getElementById('negative-percent').textContent}
+
+KEY PHRASES:
+${Array.from(document.querySelectorAll('.phrase-tag')).map(el => '- ' + el.textContent).join('\n')}
+            `.trim();
+
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sentiment_report_${Date.now()}.txt`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function shareResult() {
+            const sentiment = document.getElementById('sentiment-label').textContent;
+            const text = `I analyzed a customer review and found it to be ${sentiment.toLowerCase()}! Check out SentiMart for multilingual sentiment analysis.`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'SentiMart - Sentiment Analysis',
+                    text: text,
+                    url: window.location.href
+                }).catch(err => console.log('Share error:', err));
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(text);
+                alert('Share text copied to clipboard!');
+            }
+        }
+
+        // ==================== DASHBOARD ==================== //
+        function loadDashboard() {
+            loadMockDashboard();
+        }
+
+        function loadMockDashboard() {
+            // Mock data
+            const mockStats = {
+                totalReviews: 1234,
+                positiveReviews: 876,
+                neutralReviews: 234,
+                negativeReviews: 124
+            };
+
+            // Update stat cards
+            document.getElementById('total-reviews').textContent = mockStats.totalReviews.toLocaleString();
+            document.getElementById('positive-reviews').textContent = mockStats.positiveReviews.toLocaleString();
+            document.getElementById('neutral-reviews').textContent = mockStats.neutralReviews.toLocaleString();
+            document.getElementById('negative-reviews').textContent = mockStats.negativeReviews.toLocaleString();
+
+            // Initialize charts
+            initializeTrendChart();
+            initializeLanguageChart();
+        }
+
+        function initializeTrendChart() {
+            const ctx = document.getElementById('trendChart');
+            if (!ctx || ctx.chart) return;
+
+            ctx.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                        {
+                            label: 'Positive',
+                            data: [150, 180, 200, 220, 250, 280],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Neutral',
+                            data: [40, 50, 45, 55, 60, 65],
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Negative',
+                            data: [20, 25, 30, 28, 25, 20],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeLanguageChart() {
+            const ctx = document.getElementById('languageChart');
+            if (!ctx || ctx.chart) return;
+
+            ctx.chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['English', 'Spanish', 'French', 'German', 'Chinese', 'Others'],
+                    datasets: [{
+                        data: [400, 250, 150, 100, 200, 134],
+                        backgroundColor: [
+                            '#6366f1',
+                            '#ec4899',
+                            '#f59e0b',
+                            '#10b981',
+                            '#8b5cf6',
+                            '#64748b'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== UTILITY FUNCTIONS ==================== //
+        function formatDate(date) {
+            return new Date(date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // ==================== ERROR HANDLING ==================== //
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+        });
+    </script>
+</body>
+</html>
