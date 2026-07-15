@@ -74,6 +74,7 @@ class MultilingualSentimentAnalyzer:
         try:
             translator = GoogleTranslator(source_language=source_language, target_language='en')
             translated_text = translator.translate(text)
+            print(f"✓ Translated from {source_language} to English")
             return translated_text
         except Exception as e:
             print(f"Translation failed for language {source_language}: {e}")
@@ -365,4 +366,8 @@ def user_home():
     return render_template("user_home.html")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Run sentiment analysis demonstration
+    main()
+    
+    # Uncomment the line below to run Flask web server instead
+    # app.run(debug=True)
