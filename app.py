@@ -1,4 +1,4 @@
-from deep_translator import GoogleTranslator
+from deep_translator import MyMemoryTranslator
 from flask import Flask, render_template, request, redirect, url_for
 import os
 import json
@@ -55,11 +55,11 @@ class MultilingualSentimentAnalyzer:
             return detected_lang
         except Exception as e:
             print(f"Language detection failed: {e}")
-            return "unknown"
+            return "en"
     
     def translate_to_english(self, text: str, source_language: str) -> str:
         """
-        Translate text to English
+        Translate text to English using MyMemoryTranslator
         
         Args:
             text: Text to translate
@@ -68,16 +68,17 @@ class MultilingualSentimentAnalyzer:
         Returns:
             Translated text in English
         """
-        if source_language == 'en' or source_language == 'unknown':
+        if source_language == 'en':
             return text
         
         try:
-            translator = GoogleTranslator(source_language=source_language, target_language='en')
+            # Use MyMemoryTranslator which is more reliable than GoogleTranslator
+            translator = MyMemoryTranslator(source_language=source_language, target_language='en')
             translated_text = translator.translate(text)
-            print(f"✓ Translated from {source_language} to English")
+            print(f"✓ Translated from {source_language} to English: {translated_text}")
             return translated_text
         except Exception as e:
-            print(f"Translation failed for language {source_language}: {e}")
+            print(f"❌ Translation failed for language {source_language}: {e}")
             return text  # Return original text if translation fails
     
     def analyze_sentiment(self, text: str, language: str = None) -> SentimentResult:
